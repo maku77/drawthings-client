@@ -13,6 +13,8 @@ def create_parser() -> argparse.ArgumentParser:
     """
     Create command line argument parser for Draw Things CLI
     """
+    from . import __version__
+
     parser = argparse.ArgumentParser(
         prog="drawthings",
         description="Draw Things app client",
@@ -26,7 +28,9 @@ Examples:
         """,
     )
 
-    parser.add_argument("--version", action="version", version="%(prog)s 0.0.1")
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
