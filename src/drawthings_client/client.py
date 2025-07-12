@@ -2,12 +2,47 @@
 Draw Things client for macOS
 """
 
+import base64
 import logging
-from typing import Any, Optional
+import random
+from io import BytesIO
+from typing import Any
 
 import requests
+from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+# TODO: パラメーターとして何も指定していないことを示す値を定義する
+# 例: NO_VALUE = object()
+
+
+class Txt2ImgRequest:
+    """
+    txt2img API リクエスト用のデータクラス
+    """
+
+    prompt: str
+    negative_prompt: str = "low quality, blurry, distorted"
+    width: int | None = None
+    height: int | None = None
+    steps: int | None = None
+    guidance_scale: float | None = None
+    seed: int | None = None
+    sampler_name: str = "DPM++ 2M Karras"
+    batch_size: int | None = None
+    n_iter: int | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Convert to dictionary format (excluding None values)
+        """
+        # If seed is -1, generate a random int32 seed
+        if self.seed == -1:
+            self.seed = random.randint(0, 2**31 - 1)
+
+        # Get all dataclass fields and include only non-None values in dictionary
+        return {key: value for key, value in self.__dict__.items() if value is not None}
 
 
 class DrawThingsError(Exception):
@@ -49,12 +84,15 @@ class DrawThingsClient:
         # 接続確認
         if not self._check_connection():
             raise ConnectionError(
-                f"Draw Thingsサーバーに接続できません: {self.base_url}"
+                f"Cannot connect to Draw Things server: {self.base_url}"
             )
 
     def _check_connection(self):
         """
-        サーバー接続確認（内部メソッド）
+        Check connection to Draw Things app (internal method)
+
+        Returns:
+            bool: True if connection is successful, False otherwise
         """
         try:
             url = f"{self.base_url}/sdapi/v1/options"
@@ -80,74 +118,41 @@ class DrawThingsClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise DrawThingsError(f"設定取得エラー: {e}")
+            raise DrawThingsError(f"Configuration retrieval error: {e}")
 
-    def generate_image(
-        self,
-        prompt: str,
-        width: int = 512,
-        height: int = 512,
-        steps: int = 20,
-        guidance_scale: float = 7.5,
-        seed: int | None = None,
-        negative_prompt: Optional[str] = None,
-    ) -> dict[str, Any]:
-        """Generate image from text prompt
+    def txt2img(self, request: Txt2ImgRequest):
+        """
+        Generate image from text using Draw Things txt2img API
 
         Args:
-            prompt: Text prompt for image generation
-            width: Image width (default: 512)
-            height: Image height (default: 512)
-            steps: Number of inference steps (default: 20)
-            guidance_scale: Guidance scale (default: 7.5)
-            seed: Random seed for reproducible results
-            negative_prompt: Negative prompt to avoid certain content
+            request: Txt2ImgRequest object with parameters
 
         Returns:
-            Generation result with image data and metadata
-
-        Raises:
-            ConnectionError: If cannot connect to Draw Things app
-            ValidationError: If parameters are invalid
+            Tuple of (PIL.Image, dict) with generated image and configuration
         """
-        # パラメータ検証
-        if not prompt.strip():
-            raise ValidationError("Prompt cannot be empty")
+        url = f"{self.base_url}/sdapi/v1/txt2img"
+        payload = request.to_dict()
 
-        if width <= 0 or height <= 0:
-            raise ValidationError("Width and height must be positive integers")
+        try:
+            # This merges the server configuration with the request parameters
+            server_config = self.get_config()
+            merged_config = {**server_config, **payload}
 
-        if steps <= 0:
-            raise ValidationError("Steps must be positive integer")
+            # Call the API
+            response = requests.post(url, json=payload, timeout=600)
+            response.raise_for_status()
+            result = response.json()
+            if "images" in result and result["images"]:
+                image_data = base64.b64decode(result["images"][0])
+                image = Image.open(BytesIO(image_data))
+                return image, merged_config
+            else:
+                raise Exception(f"No image data returned. Response: {result}")
 
-        if guidance_scale < 0:
-            raise ValidationError("Guidance scale must be non-negative")
-
-        logger.info(f"Generating image: {prompt[:50]}...")
-        logger.debug(
-            f"Parameters: {width}x{height}, steps={steps}, guidance={guidance_scale}"
-        )
-
-        if seed is not None:
-            logger.debug(f"Seed: {seed}")
-        if negative_prompt:
-            logger.debug(f"Negative prompt: {negative_prompt}")
-
-        # TODO: 実際のDraw Things APIとの通信を実装
-        result = {
-            "success": False,
-            "message": "Draw Things API integration not yet implemented",
-            "prompt": prompt,
-            "width": width,
-            "height": height,
-            "steps": steps,
-            "guidance_scale": guidance_scale,
-            "seed": seed,
-            "negative_prompt": negative_prompt,
-        }
-
-        logger.warning("API integration not implemented - returning mock result")
-        return result
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"API call error: {e}")
+        except Exception as e:
+            raise Exception(f"Image processing error: {e}")
 
     def __repr__(self) -> str:
         """String representation of the client"""
