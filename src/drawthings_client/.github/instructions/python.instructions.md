@@ -8,6 +8,9 @@ Apply the [general coding guidelines](./general.instructions.md) to all code.
 
 ## 基本原則
 
+- Python のプロジェクト管理、パッケージ管理には必ず`uv` を使用してください。
+- パッケージのインストールには `uv add` を使用すること（`pip install` は使用しない）。
+- Python スクリプトの実行には `uv run` を使用すること。
 - Python 3.8+を対象とする
 - PEP 8 スタイルガイドに準拠
 - 型ヒントを必須とする

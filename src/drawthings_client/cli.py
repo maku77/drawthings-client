@@ -3,6 +3,7 @@ drawthings command line interface
 """
 
 import argparse
+import json
 import sys
 from typing import List, Optional
 
@@ -39,32 +40,27 @@ Examples:
 
 def cmd_config(args: argparse.Namespace) -> int:
     """設定値取得コマンドの実行"""
-    if args.key:
-        print(f"Getting configuration value for: {args.key}")
-        # TODO: 実際のDraw Things APIから指定された設定値を取得
-        print("⚠️  Draw Things API integration not yet implemented")
-        return 0
+    from drawthings_client.client import DrawThingsClient
 
-    # キーが指定されていない場合は全設定を表示
-    print("Current Draw Things configuration:")
-    # TODO: 実際のDraw Things APIから全設定を取得
-    sample_config = {
-        "model": "stable-diffusion-xl",
-        "width": 1024,
-        "height": 1024,
-        "steps": 20,
-        "guidance_scale": 7.5,
-        "sampler": "DPM++ 2M",
-        "scheduler": "Karras",
-        "seed": -1,
-        "batch_size": 1,
-        "safety_checker": True,
-    }
+    try:
+        client = DrawThingsClient()
+        config = client.get_config()
 
-    for key, value in sample_config.items():
-        print(f"  {key}: {value}")
+        if args.key:
+            if args.key in config:
+                value = config.get(args.key)
+                print(json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True))
+            else:
+                print(f"Key '{args.key}' not found in configuration", file=sys.stderr)
+                return 1
+        else:
+            # Display as JSON format
+            print(json.dumps(config, indent=2, ensure_ascii=False, sort_keys=True))
 
-    print("\n⚠️  Draw Things API integration not yet implemented")
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
     return 0
 
 

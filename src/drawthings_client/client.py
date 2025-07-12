@@ -5,6 +5,8 @@ Draw Things client for macOS
 import logging
 from typing import Any, Optional
 
+import requests
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,11 +37,31 @@ class DrawThingsClient:
         Args:
             host: Draw Things app host (default: localhost)
             port: Draw Things app port (default: 7860)
+
+        Raises:
+            ConnectionError: If cannot connect to Draw Things app
         """
         self.host = host
         self.port = port
         self.base_url = f"http://{host}:{port}"
         logger.info(f"DrawThings client initialized: {self.base_url}")
+
+        # 接続確認
+        if not self._check_connection():
+            raise ConnectionError(
+                f"Draw Thingsサーバーに接続できません: {self.base_url}"
+            )
+
+    def _check_connection(self):
+        """
+        サーバー接続確認（内部メソッド）
+        """
+        try:
+            url = f"{self.base_url}/sdapi/v1/options"
+            response = requests.get(url, timeout=3)
+            return response.status_code == 200
+        except requests.exceptions.RequestException:
+            return False
 
     def get_config(self) -> dict[str, Any]:
         """Get configuration from Draw Things app
@@ -52,22 +74,13 @@ class DrawThingsClient:
         """
         logger.info("Getting configuration from Draw Things app")
 
-        # TODO: 実際のDraw Things APIとの通信を実装
-        sample_config = {
-            "model": "stable-diffusion-xl",
-            "width": 1024,
-            "height": 1024,
-            "steps": 20,
-            "guidance_scale": 7.5,
-            "sampler": "DPM++ 2M",
-            "scheduler": "Karras",
-            "seed": -1,
-            "batch_size": 1,
-            "safety_checker": True,
-        }
-
-        logger.warning("Using sample configuration - API integration not implemented")
-        return sample_config
+        try:
+            url = f"{self.base_url}/sdapi/v1/options"
+            response = requests.get(url, timeout=3)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise DrawThingsError(f"設定取得エラー: {e}")
 
     def generate_image(
         self,
@@ -76,7 +89,7 @@ class DrawThingsClient:
         height: int = 512,
         steps: int = 20,
         guidance_scale: float = 7.5,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         negative_prompt: Optional[str] = None,
     ) -> dict[str, Any]:
         """Generate image from text prompt
@@ -135,43 +148,6 @@ class DrawThingsClient:
 
         logger.warning("API integration not implemented - returning mock result")
         return result
-
-    def get_status(self) -> dict[str, Any]:
-        """Get Draw Things app status
-
-        Returns:
-            Status information including app version, available models, etc.
-
-        Raises:
-            ConnectionError: If cannot connect to Draw Things app
-        """
-        logger.info("Checking Draw Things app status")
-
-        # TODO: 実際のDraw Things APIとの通信を実装
-        status = {
-            "connected": False,
-            "app_version": "unknown",
-            "api_version": "unknown",
-            "available_models": [],
-            "current_model": "unknown",
-            "message": "Draw Things API integration not yet implemented",
-        }
-
-        logger.warning("API integration not implemented - returning mock status")
-        return status
-
-    def is_connected(self) -> bool:
-        """Check if connected to Draw Things app
-
-        Returns:
-            True if connected, False otherwise
-        """
-        try:
-            status = self.get_status()
-            return status.get("connected", False)
-        except Exception as e:
-            logger.error(f"Failed to check connection status: {e}")
-            return False
 
     def __repr__(self) -> str:
         """String representation of the client"""
