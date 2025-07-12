@@ -51,18 +51,6 @@ class DrawThingsError(Exception):
     pass
 
 
-class ConnectionError(DrawThingsError):
-    """Connection related errors"""
-
-    pass
-
-
-class ValidationError(DrawThingsError):
-    """Parameter validation errors"""
-
-    pass
-
-
 class DrawThingsClient:
     """Draw Things app client"""
 
@@ -74,7 +62,7 @@ class DrawThingsClient:
             port: Draw Things app port (default: 7860)
 
         Raises:
-            ConnectionError: If cannot connect to Draw Things app
+            DrawThingsError: If cannot connect to Draw Things app
         """
         self.host = host
         self.port = port
@@ -83,7 +71,7 @@ class DrawThingsClient:
 
         # 接続確認
         if not self._check_connection():
-            raise ConnectionError(
+            raise DrawThingsError(
                 f"Cannot connect to Draw Things server: {self.base_url}"
             )
 
@@ -108,7 +96,7 @@ class DrawThingsClient:
             Configuration dictionary
 
         Raises:
-            ConnectionError: If cannot connect to Draw Things app
+            DrawThingsError: If cannot connect to Draw Things app
         """
         logger.info("Getting configuration from Draw Things app")
 
@@ -150,12 +138,12 @@ class DrawThingsClient:
                     image = Image.open(BytesIO(image_data))
                     yield image, merged_config
             else:
-                raise Exception(f"No image data returned. Response: {result}")
+                raise DrawThingsError(f"No image data returned. Response: {result}")
 
         except requests.exceptions.RequestException as e:
-            raise Exception(f"API call error: {e}")
+            raise DrawThingsError(f"API call error: {e}")
         except Exception as e:
-            raise Exception(f"Image processing error: {e}")
+            raise DrawThingsError(f"Image processing error: {e}")
 
     def __repr__(self) -> str:
         """String representation of the client"""
