@@ -1,0 +1,17 @@
+[project]
+name = "drawthings-client"
+version = "0.0.1"
+description = "Client libraries and the drawthings command for sending requests to Draw Things app"
+readme = "README.md"
+authors = [
+    { name = "maku77", email = "makkuma77@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+drawthings = "drawthings_client.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
