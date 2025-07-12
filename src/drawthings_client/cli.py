@@ -6,6 +6,8 @@ import argparse
 import json
 import sys
 
+from .lib.utils import save_image_and_config
+
 
 def create_parser() -> argparse.ArgumentParser:
     """コマンドライン引数パーサーを作成"""
@@ -47,8 +49,6 @@ Examples:
 
 def cmd_txt2img(args: argparse.Namespace) -> int:
     """txt2img コマンドの実行"""
-    from datetime import datetime
-    from pathlib import Path
 
     from drawthings_client.client import DrawThingsClient, Txt2ImgRequest
 
@@ -65,17 +65,12 @@ def cmd_txt2img(args: argparse.Namespace) -> int:
         # Generate image
         image, config = client.txt2img(request)
 
-        # Determine output filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = Path(f"generated_{timestamp}.png")
-
-        # Save image
-        image.save(output_path)
-        print(f"Image saved to: {output_path}")
-
-        # Print configuration info
-        print("\nGeneration parameters:")
-        print(f"  Prompt: {request.prompt}")
+        # Save image with timestamp
+        image_path, config_path = save_image_and_config(
+            image, config, directory="output"
+        )
+        print(f"Image saved to: {image_path}")
+        print(f"Config saved to: {config_path}")
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -85,7 +80,9 @@ def cmd_txt2img(args: argparse.Namespace) -> int:
 
 
 def cmd_config(args: argparse.Namespace) -> int:
-    """設定値取得コマンドの実行"""
+    """
+    Executes the config command to retrieve configuration values from the Draw Things app.
+    """
     from drawthings_client.client import DrawThingsClient
 
     try:
@@ -111,7 +108,6 @@ def cmd_config(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """メイン関数"""
     parser = create_parser()
     args = parser.parse_args(argv)
 
