@@ -6,11 +6,13 @@ import argparse
 import json
 import sys
 
-from .lib.utils import save_image_and_config
+from .lib.file_utils import FilePathGenerator
 
 
 def create_parser() -> argparse.ArgumentParser:
-    """コマンドライン引数パーサーを作成"""
+    """
+    Create command line argument parser for Draw Things CLI
+    """
     parser = argparse.ArgumentParser(
         prog="drawthings",
         description="Draw Things app client",
@@ -28,7 +30,7 @@ Examples:
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # config サブコマンド
+    # Subcommand for getting configuration
     config_parser = subparsers.add_parser(
         "config", help="Get configuration values from Draw Things app"
     )
@@ -38,7 +40,7 @@ Examples:
         help="Configuration key to retrieve (if not specified, shows all config)",
     )
 
-    # txt2img サブコマンド
+    # Subcommand for generating images from text
     txt2img_parser = subparsers.add_parser(
         "txt2img", help="Generate image from text using Draw Things app"
     )
@@ -62,15 +64,25 @@ def cmd_txt2img(args: argparse.Namespace) -> int:
         print(f"Generating image for prompt: {args.prompt}")
         print("Please wait...")
 
-        # Generate image
-        image, config = client.txt2img(request)
+        path_gen = FilePathGenerator("output")
+        image_count = 0
+        for image, config in client.txt2img(request):
+            image_count += 1
 
-        # Save image with timestamp
-        image_path, config_path = save_image_and_config(
-            image, config, directory="output"
-        )
-        print(f"Image saved to: {image_path}")
-        print(f"Config saved to: {config_path}")
+            image_path = path_gen.create_image_path(image_count)
+            image.save(image_path)
+            print(f"Image saved to: {image_path}")
+
+            config_path = path_gen.create_config_path(image_count)
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(config, f, indent=2, ensure_ascii=False, sort_keys=True)
+            print(f"Configuration saved to: {config_path}")
+
+        if image_count == 0:
+            print("No images were generated")
+            return 1
+
+        print(f"\nGenerated {image_count} image(s)")
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

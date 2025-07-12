@@ -122,12 +122,12 @@ class DrawThingsClient:
 
     def txt2img(self, request: Txt2ImgRequest):
         """
-        Generate image from text using Draw Things txt2img API
+        Generate images from text using Draw Things txt2img API
 
         Args:
             request: Txt2ImgRequest object with parameters
 
-        Returns:
+        Yields:
             Tuple of (PIL.Image, dict) with generated image and configuration
         """
         url = f"{self.base_url}/sdapi/v1/txt2img"
@@ -142,10 +142,13 @@ class DrawThingsClient:
             response = requests.post(url, json=payload, timeout=600)
             response.raise_for_status()
             result = response.json()
+
             if "images" in result and result["images"]:
-                image_data = base64.b64decode(result["images"][0])
-                image = Image.open(BytesIO(image_data))
-                return image, merged_config
+                # Yield each image in the response
+                for image_base64 in result["images"]:
+                    image_data = base64.b64decode(image_base64)
+                    image = Image.open(BytesIO(image_data))
+                    yield image, merged_config
             else:
                 raise Exception(f"No image data returned. Response: {result}")
 
