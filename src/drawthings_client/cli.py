@@ -53,9 +53,10 @@ Examples:
     )
     txt2img_parser.add_argument("prompt", help="Text prompt to generate image")
     txt2img_parser.add_argument(
-        "-d", "--dir",
+        "-d",
+        "--dir",
         default="output",
-        help="Output directory for generated images (default: output)"
+        help="Output directory for generated images (default: output)",
     )
 
     return parser
@@ -70,7 +71,6 @@ def cmd_txt2img(args: argparse.Namespace) -> int:
 
         # Create txt2img request
         request = Txt2ImgParams(prompt=args.prompt)
-
         print(f"Generating image with parameters: {request.to_json()}")
         print("Please wait...")
 

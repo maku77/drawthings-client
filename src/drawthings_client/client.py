@@ -8,7 +8,7 @@ import logging
 import random
 from dataclasses import dataclass
 from io import BytesIO
-from typing import Any
+from typing import Any, Iterator
 
 import requests  # type: ignore
 from PIL import Image
@@ -36,7 +36,7 @@ class Rola:
     Represents a LoRA (Low-Rank Adaptation) configuration for Draw Things app.
     """
 
-    name: str
+    file: str
     weight: float = 1.0
     enabled: bool = True
 
@@ -44,7 +44,7 @@ class Rola:
         """
         Convert to dictionary format
         """
-        result = {"name": self.name, "weight": self.weight}
+        result = {"file": self.file, "weight": self.weight}
 
         # Only include enabled key when it's False
         if not self.enabled:
@@ -178,7 +178,9 @@ class DrawThingsClient:
         except requests.exceptions.RequestException as e:
             raise DrawThingsError(f"Configuration retrieval error: {e}")
 
-    def txt2img(self, request: Txt2ImgParams):
+    def txt2img(
+        self, request: Txt2ImgParams
+    ) -> Iterator[tuple[Image.Image, dict[str, Any]]]:
         """
         Generate images from text using Draw Things txt2img API
 
