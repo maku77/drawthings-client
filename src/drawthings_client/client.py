@@ -14,37 +14,60 @@ from PIL import Image
 
 logger = logging.getLogger(__name__)
 
-# TODO: パラメーターとして何も指定していないことを示す値を定義する
-# 例: NO_VALUE = object()
+
+# Sentinel value to inherit server's current configuration (different from None)
+class _InheritType:
+    """Sentinel type for parameters that should inherit server's current settings"""
+
+    def __repr__(self) -> str:
+        return "INHERIT"
+
+
+"""This is a singleton instance of the inherit type
+
+It is used to distinguish between parameters that are explicitly set to None and those that should inherit the server's current configuration."""
+INHERIT = _InheritType()
 
 
 @dataclass
 class Txt2ImgRequest:
     """
-    txt2img API リクエスト用のデータクラス
+    Represents a request for the txt2img API of Draw Things app.
     """
 
+    # Default values for parameters
+    DEFAULT_NEGATIVE_PROMPT = "worst quality, low quality, normal quality, blurry, distorted, bad anatomy, bad hands, error, missing fingers, cropped"
+    DEFAULT_SEED = -1  # -1 means generate random seed
+
     prompt: str
-    negative_prompt: str = "low quality, blurry, distorted"
-    width: int | None = None
-    height: int | None = None
-    steps: int | None = None
-    guidance_scale: float | None = None
-    seed: int | None = None
-    sampler_name: str = "DPM++ 2M Karras"
-    batch_size: int | None = None
-    n_iter: int | None = None
+    negative_prompt: str | _InheritType = DEFAULT_NEGATIVE_PROMPT
+    width: int | _InheritType = INHERIT
+    height: int | _InheritType = INHERIT
+    steps: int | _InheritType = INHERIT
+    guidance_scale: float | _InheritType = INHERIT
+    seed: int | _InheritType = DEFAULT_SEED
+    sampler_name: str | _InheritType = INHERIT  # "DPM++ 2M Karras"
+    batch_size: int | _InheritType = INHERIT
+    n_iter: int | _InheritType = INHERIT
 
     def to_dict(self) -> dict[str, Any]:
         """
-        Convert to dictionary format (excluding None values)
+        Convert to dictionary format (excluding INHERIT values)
         """
-        # If seed is -1, generate a random int32 seed
-        if self.seed == -1:
-            self.seed = random.randint(0, 2**31 - 1)
+        result = {}
 
-        # Get all dataclass fields and include only non-None values in dictionary
-        return {key: value for key, value in self.__dict__.items() if value is not None}
+        for key, value in self.__dict__.items():
+            # Skip INHERIT values (parameters that should inherit server's current settings)
+            if value is INHERIT:
+                continue
+
+            # If seed is -1, generate a random int64 seed
+            if key == "seed" and value == Txt2ImgRequest.DEFAULT_SEED:
+                value = random.randint(0, 2**63 - 1)
+
+            result[key] = value
+
+        return result
 
 
 class DrawThingsError(Exception):
