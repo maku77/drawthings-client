@@ -31,6 +31,35 @@ INHERIT = _InheritType()
 
 
 @dataclass
+class Rola:
+    """
+    Represents a LoRA (Low-Rank Adaptation) configuration for Draw Things app.
+    """
+
+    name: str
+    weight: float = 1.0
+    enabled: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Convert to dictionary format
+        """
+        result = {"name": self.name, "weight": self.weight}
+
+        # Only include enabled key when it's False
+        if not self.enabled:
+            result["enabled"] = False
+
+        return result
+
+    def to_json(self) -> str:
+        """
+        Convert to JSON string format
+        """
+        return json.dumps(self.to_dict(), indent=2, ensure_ascii=False, sort_keys=True)
+
+
+@dataclass
 class Txt2ImgParams:
     """
     Represents a request for the txt2img API of Draw Things app.
@@ -50,6 +79,7 @@ class Txt2ImgParams:
     sampler_name: str | _InheritType = INHERIT  # "DPM++ 2M Karras"
     batch_size: int | _InheritType = INHERIT
     n_iter: int | _InheritType = INHERIT
+    loras: list[Rola] | _InheritType = INHERIT
 
     def to_dict(self) -> dict[str, Any]:
         """
@@ -61,6 +91,13 @@ class Txt2ImgParams:
             # Skip INHERIT values (parameters that should inherit server's current settings)
             if value is INHERIT:
                 continue
+
+            # Skip loras field here as it's handled specially below
+            if key == "loras":
+                if value is INHERIT:
+                    continue
+                else:
+                    value = [lora.to_dict() for lora in value]
 
             # If seed is -1, generate a random int32 seed
             if key == "seed" and value == Txt2ImgParams.DEFAULT_SEED:
