@@ -31,7 +31,7 @@ INHERIT = _InheritType()
 
 
 @dataclass
-class Txt2ImgRequest:
+class Txt2ImgParams:
     """
     Represents a request for the txt2img API of Draw Things app.
     """
@@ -63,7 +63,7 @@ class Txt2ImgRequest:
                 continue
 
             # If seed is -1, generate a random int32 seed
-            if key == "seed" and value == Txt2ImgRequest.DEFAULT_SEED:
+            if key == "seed" and value == Txt2ImgParams.DEFAULT_SEED:
                 value = random.randint(0, 2**31 - 1)
 
             result[key] = value
@@ -141,12 +141,12 @@ class DrawThingsClient:
         except requests.exceptions.RequestException as e:
             raise DrawThingsError(f"Configuration retrieval error: {e}")
 
-    def txt2img(self, request: Txt2ImgRequest):
+    def txt2img(self, request: Txt2ImgParams):
         """
         Generate images from text using Draw Things txt2img API
 
         Args:
-            request: Txt2ImgRequest object with parameters
+            request: Txt2ImgParams object with parameters
 
         Yields:
             Tuple of (PIL.Image, dict) with generated image and configuration

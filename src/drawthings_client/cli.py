@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 
-from drawthings_client.client import DrawThingsClient, Txt2ImgRequest
+from drawthings_client.client import DrawThingsClient, Txt2ImgParams
 
 from .lib.file_utils import FilePathGenerator
 
@@ -26,7 +26,8 @@ Examples:
   drawthings config
   drawthings config model
   drawthings txt2img "a beautiful landscape"
-  drawthings txt2img "a cat sitting on a table"
+  drawthings txt2img "a cat sitting on a table" -d ~/images
+  drawthings txt2img "sunset over mountains" --dir ./output
         """,
     )
 
@@ -51,6 +52,11 @@ Examples:
         "txt2img", help="Generate image from text using Draw Things app"
     )
     txt2img_parser.add_argument("prompt", help="Text prompt to generate image")
+    txt2img_parser.add_argument(
+        "-d", "--dir",
+        default="output",
+        help="Output directory for generated images (default: output)"
+    )
 
     return parser
 
@@ -63,12 +69,12 @@ def cmd_txt2img(args: argparse.Namespace) -> int:
         client = DrawThingsClient()
 
         # Create txt2img request
-        request = Txt2ImgRequest(prompt=args.prompt)
+        request = Txt2ImgParams(prompt=args.prompt)
 
         print(f"Generating image with parameters: {request.to_json()}")
         print("Please wait...")
 
-        path_gen = FilePathGenerator("output")
+        path_gen = FilePathGenerator(args.dir)
         image_count = 0
         for image, config in client.txt2img(request):
             image_count += 1

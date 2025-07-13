@@ -67,22 +67,28 @@ drawthings config
 
 # Generate image from text
 drawthings txt2img "a beautiful landscape"
+
+# Specify output directory
+drawthings txt2img "a beautiful landscape" -d ./output
 ```
 
-Generated images are saved to the `output/` folder with timestamp-based filenames.
+Generated images and their configurations are saved with timestamp-based filenames:
+
+- `YYYYMMDD-HHMMSS.png` - Generated image
+- `YYYYMMDD-HHMMSS.json` - Configuration file
 
 ### Python API
 
 ```python
 import os
 import uuid
-from drawthings_client import DrawThingsClient, Txt2ImgRequest
+from drawthings_client import DrawThingsClient, Txt2ImgParams
 
 # Initialize client
 client = DrawThingsClient()
 
 # Generate image
-request = Txt2ImgRequest(prompt="a beautiful landscape")
+request = Txt2ImgParams(prompt="a beautiful landscape")
 for image, config in client.txt2img(request):
     # Save image
     filename = f"image-{uuid.uuid4().hex[:4]}.png"
@@ -105,7 +111,7 @@ DrawThingsClient(host="localhost", port=7860)
 - `get_config()` - Get current configuration from Draw Things app
 - `txt2img(request)` - Generate images from text prompt
 
-### Txt2ImgRequest
+### Txt2ImgParams
 
 Request parameters for image generation.
 
@@ -118,13 +124,6 @@ Request parameters for image generation.
 - `guidance_scale` - Guidance scale value
 - `seed` - Random seed (-1 for auto-generation)
 - `sampler_name` - Sampler name (default: "DPM++ 2M Karras")
-
-## Output Files
-
-Generated images and their configurations are saved to the `output/` folder:
-
-- `YYYYMMDD-HHMMSS.png` - Generated image
-- `YYYYMMDD-HHMMSS.json` - Configuration file
 
 ## Development
 
