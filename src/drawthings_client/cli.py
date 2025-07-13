@@ -62,8 +62,7 @@ def cmd_txt2img(args: argparse.Namespace) -> int:
         client = DrawThingsClient()
 
         # Create txt2img request
-        request = Txt2ImgRequest()
-        request.prompt = args.prompt
+        request = Txt2ImgRequest(prompt=args.prompt)
 
         print(f"Generating image for prompt: {args.prompt}")
         print("Please wait...")

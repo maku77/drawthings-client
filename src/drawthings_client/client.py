@@ -5,10 +5,11 @@ Draw Things client for macOS
 import base64
 import logging
 import random
+from dataclasses import dataclass
 from io import BytesIO
 from typing import Any
 
-import requests
+import requests  # type: ignore
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 # 例: NO_VALUE = object()
 
 
+@dataclass
 class Txt2ImgRequest:
     """
     txt2img API リクエスト用のデータクラス
@@ -120,6 +122,7 @@ class DrawThingsClient:
         """
         url = f"{self.base_url}/sdapi/v1/txt2img"
         payload = request.to_dict()
+        # logger.debug(f"txt2img options: {payload}")
 
         try:
             # This merges the server configuration with the request parameters

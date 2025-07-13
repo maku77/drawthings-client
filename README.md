@@ -19,11 +19,43 @@ A Python client library and command-line tool for interacting with the Draw Thin
 
 ## Installation
 
+### For Users
+
+Install the `drawthings` command:
+
 ```bash
 git clone https://github.com/maku77/drawthings-client.git
 cd drawthings-client
-pip install -e .
+uv pip install .  # Install package and dependencies to current environment
 ```
+
+Or install directly from the repository:
+
+```bash
+uv pip install git+https://github.com/maku77/drawthings-client.git  # Install directly from GitHub
+```
+
+**After installation, you can:**
+- Use the `drawthings` command from anywhere in your terminal
+- Generate images using Draw Things app via command line
+- Import and use the Python API in your scripts
+
+### For Developers
+
+Clone and set up the development environment:
+
+```bash
+git clone https://github.com/maku77/drawthings-client.git
+cd drawthings-client
+uv sync --group dev --group test  # Install all dependencies including dev and test tools
+uv pip install -e .  # Install package in editable mode (changes reflect immediately)
+```
+
+**After setup, you can:**
+- Use the `drawthings` command with live code changes
+- Run tests with `uv run pytest tests/ -v`
+- Use type checking and development tools
+- Contribute to the project with proper testing environment
 
 ## Usage
 
@@ -42,19 +74,20 @@ Generated images are saved to the `output/` folder with timestamp-based filename
 ### Python API
 
 ```python
+import os
+import uuid
 from drawthings_client import DrawThingsClient, Txt2ImgRequest
 
 # Initialize client
 client = DrawThingsClient()
 
 # Generate image
-request = Txt2ImgRequest()
-request.prompt = "a beautiful sunset over mountains"
-request.width = 512
-request.height = 512
-
+request = Txt2ImgRequest(prompt="a beautiful landscape")
 for image, config in client.txt2img(request):
-    image.save("generated_image.png")
+    # Save image
+    filename = f"image-{uuid.uuid4().hex[:4]}.png"
+    image.save(filename)
+    print(f"Saved: {filename}")
 ```
 
 ## API Reference
@@ -92,6 +125,35 @@ Generated images and their configurations are saved to the `output/` folder:
 
 - `YYYYMMDD-HHMMSS.png` - Generated image
 - `YYYYMMDD-HHMMSS.json` - Configuration file
+
+## Development
+
+### Running Tests
+
+Run all tests using uv:
+
+```bash
+# Install test dependencies
+uv sync --group test
+
+# Run tests with pytest
+uv run pytest tests/ -v
+
+# Run tests with coverage
+uv run pytest tests/ --cov=src/drawthings_client --cov-report=html
+
+# Run specific test file
+uv run pytest tests/test_file_utils.py -v
+```
+
+### Test Coverage
+
+The test suite includes comprehensive tests for:
+
+- FilePathGenerator class functionality
+- Home directory path expansion (`~/path` support)
+- File path generation for images and configurations
+- Directory creation and timestamp formatting
 
 ## License
 
