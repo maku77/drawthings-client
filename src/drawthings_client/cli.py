@@ -6,6 +6,8 @@ import argparse
 import json
 import sys
 
+from drawthings_client.client import DrawThingsClient, Txt2ImgRequest
+
 from .lib.file_utils import FilePathGenerator
 
 
@@ -54,9 +56,8 @@ Examples:
 
 
 def cmd_txt2img(args: argparse.Namespace) -> int:
-    """txt2img コマンドの実行"""
-
-    from drawthings_client.client import DrawThingsClient, Txt2ImgRequest
+    """
+    Executes the txt2img command to generate images from text using the Draw Things app."""
 
     try:
         client = DrawThingsClient()
@@ -64,7 +65,7 @@ def cmd_txt2img(args: argparse.Namespace) -> int:
         # Create txt2img request
         request = Txt2ImgRequest(prompt=args.prompt)
 
-        print(f"Generating image for prompt: {args.prompt}")
+        print(f"Generating image with parameters: {request.to_json()}")
         print("Please wait...")
 
         path_gen = FilePathGenerator("output")
@@ -98,7 +99,6 @@ def cmd_config(args: argparse.Namespace) -> int:
     """
     Executes the config command to retrieve configuration values from the Draw Things app.
     """
-    from drawthings_client.client import DrawThingsClient
 
     try:
         client = DrawThingsClient()

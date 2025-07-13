@@ -3,6 +3,7 @@ Draw Things client for macOS
 """
 
 import base64
+import json
 import logging
 import random
 from dataclasses import dataclass
@@ -61,13 +62,20 @@ class Txt2ImgRequest:
             if value is INHERIT:
                 continue
 
-            # If seed is -1, generate a random int64 seed
+            # If seed is -1, generate a random int32 seed
             if key == "seed" and value == Txt2ImgRequest.DEFAULT_SEED:
-                value = random.randint(0, 2**63 - 1)
+                value = random.randint(0, 2**31 - 1)
 
             result[key] = value
 
         return result
+
+    def to_json(self) -> str:
+        """
+        Convert to JSON string format
+        """
+
+        return json.dumps(self.to_dict(), indent=2, ensure_ascii=False, sort_keys=True)
 
 
 class DrawThingsError(Exception):
