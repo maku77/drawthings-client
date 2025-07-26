@@ -31,14 +31,27 @@ INHERIT = _InheritType()
 
 
 @dataclass
-class Rola:
+class Lora:
     """
     Represents a LoRA (Low-Rank Adaptation) configuration for Draw Things app.
     """
 
     file: str
-    weight: float = 1.0
-    enabled: bool = True
+    weight: float
+    enabled: bool
+
+    def __init__(self, file: str, weight: float = 1.0, enabled: bool = True):
+        """
+        Initialize a Lora instance.
+
+        Args:
+            file: Path to the LoRA file.
+            weight: Weight of the LoRA (default: 1.0).
+            enabled: Whether the LoRA is enabled (default: True).
+        """
+        self.file = file
+        self.weight = weight
+        self.enabled = enabled
 
     def to_dict(self) -> dict[str, Any]:
         """
@@ -70,16 +83,17 @@ class Txt2ImgParams:
     DEFAULT_SEED = -1  # -1 means generate random seed
 
     prompt: str
+    model: str | _InheritType = INHERIT
     negative_prompt: str | _InheritType = DEFAULT_NEGATIVE_PROMPT
     width: int | _InheritType = INHERIT
     height: int | _InheritType = INHERIT
     steps: int | _InheritType = INHERIT
     guidance_scale: float | _InheritType = INHERIT
     seed: int | _InheritType = DEFAULT_SEED
-    sampler_name: str | _InheritType = INHERIT  # "DPM++ 2M Karras"
-    batch_size: int | _InheritType = INHERIT
-    n_iter: int | _InheritType = INHERIT
-    loras: list[Rola] | _InheritType = INHERIT
+    sampler: str | _InheritType = INHERIT  # "DPM++ 2M Karras"
+    batch_count: int | _InheritType = INHERIT  # Number of iterations
+    batch_size: int | _InheritType = INHERIT  # Number of images generated at once
+    loras: list[Lora] | _InheritType = INHERIT
 
     def to_dict(self) -> dict[str, Any]:
         """
@@ -221,3 +235,15 @@ class DrawThingsClient:
     def __repr__(self) -> str:
         """String representation of the client"""
         return f"DrawThingsClient(host='{self.host}', port={self.port})"
+
+
+def validate_dict_keys(dict1: dict, dict2: dict) -> None:
+    """
+    Validate that all keys in dict1 are present in dict2."""
+    invalid_keys = [key for key in dict1 if key not in dict2]
+    if invalid_keys:
+        logger.error(f"Invalid keys found: {invalid_keys}")
+        raise DrawThingsError(
+            f"Invalid keys in request: {', '.join(invalid_keys)}. "
+            "Please check the Draw Things API documentation for valid parameters."
+        )

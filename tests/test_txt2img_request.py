@@ -87,7 +87,7 @@ class TestTxt2ImgParams(unittest.TestCase):
         request = Txt2ImgParams(
             prompt="test prompt",
             negative_prompt="bad quality",
-            sampler_name="DDIM"
+            sampler="DDIM"
         )
         
         # Mock random for seed=-1 default
@@ -99,7 +99,7 @@ class TestTxt2ImgParams(unittest.TestCase):
             "prompt": "test prompt",
             "negative_prompt": "bad quality",
             "seed": 88888,
-            "sampler_name": "DDIM"
+            "sampler": "DDIM"
         }
         self.assertEqual(result, expected)
         
@@ -161,9 +161,9 @@ class TestTxt2ImgParams(unittest.TestCase):
             steps=30,
             guidance_scale=7.5,
             seed=12345,
-            sampler_name="Euler a",
+            sampler="Euler a",
             batch_size=2,
-            n_iter=3
+            batch_count=3
         )
         result = request.to_dict()
         
@@ -175,9 +175,9 @@ class TestTxt2ImgParams(unittest.TestCase):
             "steps": 30,
             "guidance_scale": 7.5,
             "seed": 12345,
-            "sampler_name": "Euler a",
+            "sampler": "Euler a",
             "batch_size": 2,
-            "n_iter": 3
+            "batch_count": 3
         }
         self.assertEqual(result, expected)
         
@@ -189,7 +189,7 @@ class TestTxt2ImgParams(unittest.TestCase):
         # Note: negative_prompt now has a string default, not INHERIT
         self.assertIs(request.width, INHERIT)
         self.assertIs(request.height, INHERIT)
-        self.assertIs(request.sampler_name, INHERIT)
+        self.assertIs(request.sampler, INHERIT)
 
 
 if __name__ == "__main__":

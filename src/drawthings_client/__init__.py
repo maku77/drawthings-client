@@ -2,7 +2,7 @@
 Draw Things client library and CLI tool
 """
 
-from .client import DrawThingsClient, DrawThingsError, Txt2ImgParams, Rola
+from .client import DrawThingsClient, DrawThingsError, Txt2ImgParams, Lora
 
 __version__ = "0.0.1"
 
@@ -11,6 +11,6 @@ __all__ = [
     "DrawThingsClient",
     "DrawThingsError",
     "Txt2ImgParams",
-    "Rola",
+    "Lora",
     "__version__",
 ]
