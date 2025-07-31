@@ -91,6 +91,8 @@ class Txt2ImgParams:
     guidance_scale: float | _InheritType = INHERIT
     seed: int | _InheritType = DEFAULT_SEED
     sampler: str | _InheritType = INHERIT  # "DPM++ 2M Karras"
+    clip_skip: int | _InheritType = INHERIT  # Clip skip value
+    shift: float | _InheritType = INHERIT  # Shift value for the sampler
     batch_count: int | _InheritType = INHERIT  # Number of iterations
     batch_size: int | _InheritType = INHERIT  # Number of images generated at once
     loras: list[Lora] | _InheritType = INHERIT
@@ -225,7 +227,7 @@ class DrawThingsClient:
                     image = Image.open(BytesIO(image_data))
                     yield image, merged_config
             else:
-                raise DrawThingsError(f"No image data returned. Response: {result}")
+                raise DrawThingsError(f"No images returned in response: {result}")
 
         except requests.exceptions.RequestException as e:
             raise DrawThingsError(f"API call error: {e}")
